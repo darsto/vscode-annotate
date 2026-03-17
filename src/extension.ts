@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Parser, Expression } from 'expr-eval';
+import { simple_eval } from './simple_eval';
 
 // A single parsed annotation
 // > @annotate [<start> - <end>] [<color>] <text>
@@ -16,7 +16,7 @@ interface Annotation {
 // > @annotate-cfg [rangeFn = { start = 8 + start * 3 - 1; end = 8 + end * 3 - 2 }]
 interface AnnotationCfg {
 	clamp?: [number, number];
-	rangeFn?: Expression,
+	rangeFn?: string,
 }
 
 // Global storage for all vscode.TextEditorDecorationType, mapped by a short color
@@ -51,8 +51,7 @@ function addAnnotations(decorationsMap: DecorationsMap, linePos: vscode.Position
 	for (let anno of annotations) {
 		try {
 			if (cfg.rangeFn) {
-				let ctx = { start: anno.start, end: anno.end };
-				cfg.rangeFn.evaluate(ctx);
+				let ctx = simple_eval(cfg.rangeFn, { start: anno.start, end: anno.end });
 				[anno.start, anno.end] = [ctx.start, ctx.end];
 			}
 			if (cfg.clamp) {
@@ -99,7 +98,6 @@ function addAnnotations(decorationsMap: DecorationsMap, linePos: vscode.Position
 function parseDocument(editor: vscode.TextEditor, currentCfg: AnnotationCfg, startLine: number, endLine: number, addAnnotationsFn: Function) {
 	let pendingAnnotations: Annotation[] = [];
 	let lastNonCommentLinePos: vscode.Position | undefined;
-	let parser = new Parser();
 
 	for (let i = startLine; i < endLine; i++) {
 		const line = editor.document.lineAt(i);
@@ -128,7 +126,7 @@ function parseDocument(editor: vscode.TextEditor, currentCfg: AnnotationCfg, sta
 									const rangeFnRegEx = /{(.*)}/;
 									let matches = rangeFnRegEx.exec(value);
 									if (matches) {
-										currentCfg.rangeFn = parser.parse(matches[1]);
+										currentCfg.rangeFn = matches[1];
 									}
 									break;
 								}
@@ -199,7 +197,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 			// get the cfg at that particular line
 			let cfg: AnnotationCfg = {};
-			parseDocument(activeEditor, cfg, 0, selectionLine, () => {});
+			parseDocument(activeEditor, cfg, 0, selectionLine, () => { });
 
 			// get matching column numbers for the current cfg
 			// since it's not a big deal, just find a proper value by brute force
@@ -207,8 +205,7 @@ export function activate(context: vscode.ExtensionContext) {
 			let startColumnIdx = 0;
 			for (; startColumnIdx < snippetStartCharacter; startColumnIdx++) {
 				if (cfg.rangeFn) {
-					let ctx = { start: startColumnIdx, end: startColumnIdx };
-					cfg.rangeFn.evaluate(ctx);
+					let ctx = simple_eval(cfg.rangeFn, { start: startColumnIdx, end: startColumnIdx });
 					if (ctx.start >= snippetStartCharacter) {
 						break;
 					}
@@ -221,8 +218,7 @@ export function activate(context: vscode.ExtensionContext) {
 			let endColumnIdx = 0;
 			for (; endColumnIdx <= snippetEndCharacter; endColumnIdx++) {
 				if (cfg.rangeFn) {
-					let ctx = { start: endColumnIdx, end: endColumnIdx };
-					cfg.rangeFn.evaluate(ctx);
+					let ctx = simple_eval(cfg.rangeFn, { start: endColumnIdx, end: endColumnIdx });
 					if (ctx.end > snippetEndCharacter) {
 						endColumnIdx -= 1;
 						break;

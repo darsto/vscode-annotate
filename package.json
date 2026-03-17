@@ -117,7 +117,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
-    "test": "true"
+    "test": "npm run compile && node ./out/test/extension.test.js"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
@@ -129,8 +129,5 @@
     "@vscode/test-electron": "^2.3.9",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3"
-  },
-  "dependencies": {
-    "expr-eval": "^2.0.2"
   }
 }

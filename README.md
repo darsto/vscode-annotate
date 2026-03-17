@@ -33,7 +33,7 @@ Currently the following configuration options can be set:
 
 > \> @annotate-cfg [rangeFn = { start = 6 + start * 3; end = 6 + end * 3 - 1 }]
 
-- map `start` and `end` column numbers in `@annotate` to any other value. This uses [expr-eval](https://github.com/silentmatt/expr-eval) library for safe evaluation. See the link for a list of supported operations and built-in arithmetic functions.
+- map `start` and `end` column numbers in `@annotate` to any other value. This is parsed manually and only supports +, -, *, and / operators.
 
 # Remarks
 
