@@ -1,5 +1,9 @@
 # Change Log
 
-## [Unreleased]
+## [0.0.7]
 
-- Initial release
+- Remove unsafe dependency "expr-eval"
+
+## [0.0.6]
+
+- First meaningful release
