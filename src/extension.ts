@@ -33,7 +33,7 @@ const annotationCfgPrefix = '@annotate-cfg';
 const annotationCfgOptRegEx = /\[\s*(.*?)\s*=\s*(.*)\s*\]/g;
 
 function createDecoration(color: string): vscode.TextEditorDecorationType {
-	let colorVal: string | object = color;
+	let colorVal: string | vscode.ThemeColor = color;
 	if (color.startsWith("default")) {
 		let idx = parseInt(color.substring("default".length)) || 0;
 		colorVal = { id: "annotate.defaultColor" + idx };
@@ -41,7 +41,8 @@ function createDecoration(color: string): vscode.TextEditorDecorationType {
 	return vscode.window.createTextEditorDecorationType({
 		borderWidth: '1px',
 		borderStyle: 'solid',
-		backgroundColor: colorVal,
+		light: { backgroundColor: colorVal },
+		dark: { backgroundColor: colorVal },
 		borderColor: '#ffffff50',
 	});
 }
